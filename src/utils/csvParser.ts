@@ -8,6 +8,8 @@ export interface TeamData {
   roundsCompleted: number;
   status: string;
   roundScores: { [key: string]: number };
+  website?: string;
+  mediaUrl?: string;
 }
 
 export const parseLeaderboardCSV = (csvText: string): TeamData[] => {

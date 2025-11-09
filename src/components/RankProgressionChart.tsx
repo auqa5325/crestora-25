@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { TeamData, calculateRankProgression } from '@/utils/csvParser';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface RankProgressionChartProps {
   teams: TeamData[];
@@ -9,16 +11,15 @@ interface RankProgressionChartProps {
 export const RankProgressionChart = ({ teams }: RankProgressionChartProps) => {
   const [currentRoundIndex, setCurrentRoundIndex] = useState(0);
   const progression = calculateRankProgression(teams);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentRoundIndex((prev) => (prev + 1) % progression.length);
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [progression.length]);
-
   const currentRound = progression[currentRoundIndex];
+
+  const goToPrevious = () => {
+    setCurrentRoundIndex((prev) => (prev - 1 + progression.length) % progression.length);
+  };
+
+  const goToNext = () => {
+    setCurrentRoundIndex((prev) => (prev + 1) % progression.length);
+  };
   const colors = [
     'hsl(var(--space-gold))',
     'hsl(var(--space-cyan))',
@@ -39,23 +40,43 @@ export const RankProgressionChart = ({ teams }: RankProgressionChartProps) => {
             Journey to Victory
           </h2>
           <p className="text-muted-foreground">
-            Watch how the top teams climbed the ranks through each round
+            Explore how the top teams climbed the ranks through each round
           </p>
         </motion.div>
 
-        {/* Round Indicator */}
-        <motion.div
-          key={currentRoundIndex}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center mb-8"
-        >
-          <div className="inline-block px-6 py-3 bg-primary/20 rounded-full border-2 border-primary/50">
-            <h3 className="font-orbitron text-2xl font-bold text-primary">
-              {currentRound.round}
-            </h3>
-          </div>
-        </motion.div>
+        {/* Round Indicator with Navigation */}
+        <div className="flex items-center justify-center gap-4 mb-8">
+          <Button
+            onClick={goToPrevious}
+            variant="ghost"
+            size="icon"
+            className="rounded-full border-2 border-primary/50 hover:bg-primary/20"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </Button>
+
+          <motion.div
+            key={currentRoundIndex}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center"
+          >
+            <div className="inline-block px-8 py-3 bg-primary/20 rounded-full border-2 border-primary/50">
+              <h3 className="font-orbitron text-2xl font-bold text-primary">
+                {currentRound.round}
+              </h3>
+            </div>
+          </motion.div>
+
+          <Button
+            onClick={goToNext}
+            variant="ghost"
+            size="icon"
+            className="rounded-full border-2 border-primary/50 hover:bg-primary/20"
+          >
+            <ChevronRight className="w-6 h-6" />
+          </Button>
+        </div>
 
         {/* Rankings Chart */}
         <div className="space-y-4">
@@ -118,16 +139,19 @@ export const RankProgressionChart = ({ teams }: RankProgressionChartProps) => {
         </div>
 
         {/* Progress Dots */}
-        <div className="flex justify-center gap-2 mt-8">
-          {progression.map((_, index) => (
-            <div
+        <div className="flex justify-center gap-2 mt-8 flex-wrap">
+          {progression.map((round, index) => (
+            <button
               key={index}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+              onClick={() => setCurrentRoundIndex(index)}
+              className={`px-3 py-1 rounded-full text-xs font-orbitron transition-all duration-300 border ${
                 index === currentRoundIndex 
-                  ? 'bg-primary w-8' 
-                  : 'bg-border'
+                  ? 'bg-primary text-primary-foreground border-primary' 
+                  : 'bg-background/50 text-muted-foreground border-border hover:border-primary/50'
               }`}
-            />
+            >
+              {round.round.replace('Round ', 'R')}
+            </button>
           ))}
         </div>
       </div>
